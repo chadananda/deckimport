@@ -1,17 +1,22 @@
 #!/usr/bin/env node
 
-console.log('hello world')
+// console.log('hello world')
+// return
 
-const shell = require("shelljs")
+//const shell = require("shelljs")
 const program = require('commander')
 const path = require("path");
 const fs = require('fs-extra')
 const json = require('jsonfile')
-const hash = require('hash.js')
+//const hash = require('hash.js')
 const trim = require('trim-character')
-
 const IPFS = require('ipfs')
-const node = new IPFS()
+
+const { exec } = require('child_process')
+
+//const Gun = require('gun')
+//var gun = Gun()
+
 
 
 program
@@ -20,8 +25,13 @@ program
   .option('-d, --deck <folderpath>', "Path to deck export folder. JSON file should be named deck.json")
   .parse(process.argv)
 
-  program.deck = (program.deck || __dirname).trim('/')
+  program.deck = trim((program.deck || __dirname), '/')
   var sourceFile = program.deck + '/deck.json'
+  var outputFile = path.resolve(program.deck,'..') + '/'+program.deck.split('/').pop() +'.json'
+
+
+  console.log(outputFile)
+  process.exit(0)
 
 
 if (!fs.existsSync(sourceFile)) {
@@ -29,109 +39,36 @@ if (!fs.existsSync(sourceFile)) {
   process.exit(1)
 }
 
-// make sure output folder exists
-//fs.mkdirp(outputFolder)
-
+console.log('* Loading cards from: "'+sourceFile+'"')
 var cards = json.readFileSync(sourceFile)
-console.log('Loaded cards: ', cards.length)
+console.log('* Loaded', cards.length, 'cards')
 
+const node = new IPFS()
+var promises = []
 
+node.on('ready', () => {
+  cards.forEach((card, i) => {
+    card.files.aud.forEach((file, j) => {
+      if (file) promises.push(fs.readFile(program.deck +'/'+ file).then(data => {
+        return new Promise(function(resolve, reject) {
+          node.files.add(data, function (err, files) {
+            cards[i].files.aud[j] = files[0].path
+            exec(`ipfs pin add ${files[0].path}`) // ipfs pin add ipfs-path
+            setTimeout(resolve, 50)
+          })
+        })
+      })
+      )
+    })
+  })
+  Promise.all(promises).then(values => {
+    console.log('All done here')
+    json.writeFileSync(outputFile, cards)
+    // let's loop through this bad boy and add everything to gundb
 
-// utilities
-// var _hash = (str) => hash.sha256().update(str).digest('hex')
-
-
-
-// var wordcount=0, phrasecount=0, highest_difficulty=0
-// // load js file
-// var dli = json.readFileSync(sourceFile)
-// // parse out the part we need
-// var items = dli.notes.map(note => {
-//   let en = trim(note.fields[0], '.').trim()
-//     en = en.split(' ').map(w => w.trim()).filter(w => w.length).join(' ')
-//   let fa = trim(note.fields[1], '.').trim()
-//     fa = fa.split(' ').map(w => w.trim()).filter(w => w.length).join(' ')
-//   let fa_file = trim(trim(trim(note.fields[3],"]"),"["),'sound:').trim()
-
-//   let isNum = en.match(/^[0-9]+$/m)
-//   let words = fa.split(' ')
-//   let wordscount = words.length
-//   let type = wordscount>1 ? 'phrase' : 'word'
-//   let difficulty = parseInt(note.fields[4].trim(),10) * wordscount
-
-//   let decknum = note.fields[5].replace(/^([0-9]+)?\-.*?$/m, '$1')
-//   if (type==='phrase') phrasecount++; else wordcount++
-
-//   let isQ = en.indexOf('?')>-1
-
-//   let strip = function(str) {
-//     return str.replace(/\!\?\:\)\(\.\"/g, '').toLowerCase().trim()
-//   }
-//   let id = _hash('lang_flashcard'+strip(en+fa)).slice(0,10)
-
-//   if (difficulty > highest_difficulty) highest_difficulty = difficulty
-
-//   if (words.length<=MAX_WORDS) return {
-//     en: en,
-//     fa: fa,
-//     audio_fa: fa_file,
-//     difficulty: difficulty,
-//     deck: decknum,
-//     type: type,
-//     words: fa.split(' ') ,
-//     isQ: isQ,
-//     id: id,
-//     wcount: wordscount,
-//     len: fa.length+en.length,
-//     isNum: isNum
-//   }
-// }).filter(card => card)
-
-// // organize into lists by word length
-// //
-
-// var completedcards = []
-// var difficulty_ratio = 0
-
-// for (i=1; i<=MAX_WORDS; i++) {
-//   var list = items.filter(card => card.wcount===i).sort((a,b) => a.difficulty-b.difficulty)
-
-//   // for each card gather up best wrong answers
-//   list.forEach(card => {
-//     let result = {
-//       id: card.id, type: 'lang_vocab', difficulty: (card.difficulty/highest_difficulty*70+10).toFixed(2),
-//       wordcount: card.wcount, isPhrase: card.type==='phrase',
-//       content: {
-//         lang:  ["en","fa"],
-//         words: [card.en, card.fa],
-//         description: "Translate to or from Farsi",
-//       },
-//       files: {
-//         aud: ['', card.audio_fa]
-//       }
-//     }
-//     // try to
-//     let options = list.filter(c => c.id!=card.id)
-//     let match = list.filter(c => (c.isQ === card.isQ))
-//     // sort by length difference
-//     let matches = match.sort((a,b) => Math.abs(card.len-a.len)-Math.abs(card.len-b.len) )
-//       .filter(c =>!(c.isNum || c.en==card.en || c.fa===card.fa))
-//       .slice(0,20)
-//     result.content.incorrect = []
-//     result.content.incorrect[0] = matches.map(c => c.en)
-//     result.content.incorrect[1] = matches.map(c => c.fa)
-//     if (result.content.incorrect[0].length>3) completedcards.push(result)
-//   })
-// }
-// completedcards = completedcards.sort((a,b) => a.difficulty-b.difficulty)
-
-
-// output JSON
-
-// var outputfile = outputFolder+'deck.json'
-
-// json.writeFileSync(outputfile, completedcards, {spaces: 2, EOL: '\r\n'})
-// completedcards.forEach(card => fs.copyFileSync(deckFolder+card.files.aud[1], outputFolder+card.files.aud[1]))
+    process.exit(0)
+  })
+})
 
 
 
