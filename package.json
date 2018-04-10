@@ -21,5 +21,13 @@
     "shelljs": "^0.8.1",
     "trim-character": "^2.0.1"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chadananda/deckimport.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chadananda/deckimport/issues"
+  },
+  "homepage": "https://github.com/chadananda/deckimport#readme"
 }

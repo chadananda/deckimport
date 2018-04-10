@@ -14,8 +14,6 @@ const IPFS = require('ipfs')
 const node = new IPFS()
 
 
-
-
 program
   .version('0.0.1')
   .option('-i, --import', 'Import Deck to Corpus')
@@ -34,9 +32,13 @@ if (!fs.existsSync(sourceFile)) {
 // make sure output folder exists
 //fs.mkdirp(outputFolder)
 
+var cards = json.readFileSync(sourceFile)
+console.log('Loaded cards: ', cards.length)
+
+
 
 // utilities
-var _hash = (str) => hash.sha256().update(str).digest('hex')
+// var _hash = (str) => hash.sha256().update(str).digest('hex')
 
 
 
