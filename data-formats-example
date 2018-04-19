@@ -1,0 +1,38 @@
+{
+  id: "flashcard:0c842189770c8",
+  type: "lang_flashcard",
+  language: "fa",
+  difficulty: "11.19",
+  words: ["Hello", "سلام"],
+  category:  "basic"
+  audio:  [
+    "",
+    ""
+  ]
+  instructions": [
+    "Translate to or from Farsi",
+    ""
+  ],
+  incorrect: [[
+    "Rain", "Cannon", "Owner", "Duty", "Rifle", "Elbow", "Chest", "Guard", "right", "Here", "Medic", "Clean", "Close", "Yellow", "White", "Black", "Village", "Valley", "Border", "Danger"],
+    [
+    "بارون", "توپ", "صاحب", "عوارض", "تفنگ", "آرنج", "سينه", "گارد", "راست", "اينجا", "دکتر", "تميز", "ببند", "زرد", "سفيد", "سياه", "ده", "دره", "مرز", "خطر"
+  ]],
+},
+
+
+
+  id: "0c842189770c8",
+  type: "lang",
+  category:  "basic",
+  difficulty: "11.19",
+  l1: "Hello",
+  l2: "سلام",
+  lang_l1: "en",
+  lang_l2: "fa"
+  audio_l1: "",
+  audio_l2: ""
+
+
+
+
